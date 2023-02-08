@@ -1,0 +1,78 @@
+---
+
+services:
+  nginx:
+    image: nginx
+    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    restart: 'always'
+    depends_on:
+      - wordpress
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./build/nginx/includes:/etc/nginx/includes
+      - ./build/nginx/templates:/etc/nginx/templates
+      - ./src:/var/www/html:rw,cached
+      - ./certs:/etc/certs
+      - ./log/nginx:/var/log/nginx:delegated
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.tpl
+      - DOMAIN=${DOMAIN}
+    networks:
+      default:
+        aliases:
+          - ${DOMAIN}
+
+  mysql:
+    image: mariadb
+    container_name: ${COMPOSE_PROJECT_NAME}-mysql
+    restart: always
+    command: --lower_case_table_names=2
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+
+  wordpress:
+    build:
+      context: .
+      dockerfile: ./build/wordpress.dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}-wordpress
+    restart: always
+    depends_on:
+      - mysql
+    volumes:
+      - ./src:/var/www/html:rw,cached
+      - ./build/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${COMPOSE_PROJECT_NAME}-phpmyadmin
+    ports:
+      - 8082:80
+    links:
+      - mysql:mysql
+    volumes:
+      - ./build/phpmyadmin/phpmyadmin.ini:/usr/local/etc/php/conf.d/phpmyadmin.ini
+    environment:
+      PMA_HOST: ${DB_HOST}
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: ${COMPOSE_PROJECT_NAME}-mailhog
+    ports:
+      - 8025:8025
+      - 1025:1025
+
+  composer:
+    image: composer
+    container_name: ${COMPOSE_PROJECT_NAME}-composer
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html:rw,cached
