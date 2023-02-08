@@ -31,7 +31,7 @@ DB_TABLE_PREFIX="wp_"
 <details>
 <summary>2. Pour WordPress (obligatoire)</summary>
 
-Modifiez `./src/.env.example` selon vos besoins. Lors de la commande `composer create-project` décrite ci-dessous, un `./src/.env` sera créé.
+Modifiez `./src/.env` selon vos besoins.
 
 ```ini
 DB_NAME="myapp" # nom du service docker
