@@ -6,7 +6,7 @@ source "../../.env"
 
 DOMAIN=$(echo "$DOMAIN")
 
-mkcert -install "${DOMAIN}"
+mkcert -install "localhost" "127.0.0.1" "::" "${DOMAIN}"
 
 mkdir -p ../../certs
 
